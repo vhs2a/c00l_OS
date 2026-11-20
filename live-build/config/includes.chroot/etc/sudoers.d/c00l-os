@@ -1,0 +1,5 @@
+# Lets the live-session bootstrap account (c00l) perform exactly the
+# system actions the c00l_OS setup wizard and panel need, with no password
+# prompt (a password prompt would be meaningless anyway on an autologin
+# live session). Scoped to specific commands only -- not a blanket NOPASSWD.
+c00l ALL=(root) NOPASSWD: /usr/sbin/useradd, /usr/sbin/chpasswd, /usr/bin/systemctl reboot, /usr/bin/systemctl poweroff

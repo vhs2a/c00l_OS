@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=c00l_Term
+Comment=Open a terminal
+Exec=/opt/c00l-os/apps/start_c00l_term.sh
+Icon=/opt/c00l-os/assets/icons/terminal.png
+Categories=System;TerminalEmulator;
+Terminal=false

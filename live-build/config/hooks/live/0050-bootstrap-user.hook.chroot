@@ -1,0 +1,22 @@
+#!/bin/sh
+# Runs inside the chroot during `lb build`. Creates the live session's
+# bootstrap account ("c00l"), which lightdm auto-logs into on every boot
+# (see /etc/lightdm/lightdm.conf.d/50-c00l-os.conf). It needs no password:
+# lightdm's autologin bypasses authentication entirely for this account,
+# same mechanism every "live USB" distro uses for its default live user.
+#
+# The REAL account you choose a username/password for in the c00l_OS setup
+# wizard is a separate, genuine Linux user created at first boot
+# (see shell.py's create_or_update_user()); "c00l" is just the stagehand
+# that gets the desktop on screen so the wizard can run.
+set -e
+
+if ! id c00l >/dev/null 2>&1; then
+    useradd -m -s /bin/bash -G sudo,audio,video,netdev c00l
+    passwd -d c00l
+fi
+
+mkdir -p /etc/c00l-os
+chown -R c00l:c00l /etc/c00l-os
+
+echo "bootstrap user 'c00l' ready"

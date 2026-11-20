@@ -1,0 +1,30 @@
+# Packages that make up c00l_OS on top of the Debian live base.
+#
+# Window manager + X stack
+openbox
+xserver-xorg
+xinit
+x11-apps
+xterm
+lightdm
+feh
+
+# Our apps (Python/Tk + GTK/WebKit browser)
+python3
+python3-tk
+python3-gi
+gir1.2-gtk-3.0
+gir1.2-webkit2-4.1
+
+# Fonts + sound playback
+fonts-dejavu-core
+alsa-utils
+
+# Admin bits our apps rely on (sudo rules, networking)
+sudo
+network-manager
+
+# Live-system plumbing (boots from the squashfs, overlay root, etc.)
+live-boot
+live-config
+live-config-systemd

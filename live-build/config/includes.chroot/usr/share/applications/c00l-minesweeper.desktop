@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=c00l_Minesweeper
+Comment=Classic minesweeper
+Exec=python3 /opt/c00l-os/apps/minesweeper.py
+Icon=/opt/c00l-os/assets/icons/minesweeper.png
+Categories=Game;LogicGame;
+Terminal=false

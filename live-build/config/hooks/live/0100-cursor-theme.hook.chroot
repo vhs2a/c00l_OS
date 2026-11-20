@@ -1,0 +1,41 @@
+#!/bin/sh
+# Runs INSIDE the chroot during `lb build`, after packages (incl. x11-apps,
+# which provides xcursorgen) are installed. Compiles the original c00l_OS
+# cursor artwork (PNG frames) into a real, installed Xcursor theme.
+set -e
+
+SRC=/opt/c00l-os/cursor-src
+OUT=/usr/share/icons/c00l-os-cursors/cursors
+mkdir -p "$OUT"
+cd "$SRC"
+
+for cfg in *.in; do
+    name="${cfg%.in}"
+    xcursorgen "$cfg" "$OUT/$name"
+done
+
+# Legacy/alternate X11 cursor names, aliased to our canonical cursors so
+# every toolkit (GTK, Qt, plain Xlib apps) picks up the themed look.
+ln -sf default "$OUT/left_ptr"
+ln -sf default "$OUT/top_left_arrow"
+ln -sf text "$OUT/xterm"
+ln -sf text "$OUT/ibeam"
+ln -sf pointer "$OUT/hand1"
+ln -sf pointer "$OUT/hand2"
+ln -sf pointer "$OUT/pointing_hand"
+ln -sf wait "$OUT/watch"
+ln -sf move "$OUT/fleur"
+ln -sf move "$OUT/size_all"
+ln -sf not-allowed "$OUT/X_cursor"
+ln -sf not-allowed "$OUT/crossed_circle"
+ln -sf not-allowed "$OUT/forbidden"
+ln -sf not-allowed "$OUT/no-drop"
+ln -sf not-allowed "$OUT/dnd-no-drop"
+ln -sf crosshair "$OUT/cross"
+ln -sf crosshair "$OUT/tcross"
+ln -sf crosshair "$OUT/cell"
+
+# build input no longer needed in the final image
+rm -rf "$SRC"
+
+echo "c00l_OS cursor theme installed to $OUT"

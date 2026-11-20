@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=c00l_OS
+Comment=The c00l_OS desktop (openbox + the c00l_OS shell)
+Exec=/opt/c00l-os/apps/start-session.sh
+Type=Application
+DesktopNames=c00l-os

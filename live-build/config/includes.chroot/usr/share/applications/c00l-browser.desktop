@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=c00l_browser
+Comment=Browse the web
+Exec=python3 /opt/c00l-os/apps/browser.py
+Icon=/opt/c00l-os/assets/icons/browser.png
+Categories=Network;WebBrowser;
+Terminal=false

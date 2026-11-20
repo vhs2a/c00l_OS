@@ -1,0 +1,8 @@
+#!/bin/sh
+# Safety net: make sure every c00l_OS script/app is executable inside the
+# chroot, regardless of how the project files were transferred onto the
+# build machine (zip extraction / some git configs can drop the exec bit).
+set -e
+chmod +x /opt/c00l-os/apps/*.py /opt/c00l-os/apps/*.sh 2>/dev/null || true
+chmod +x /etc/skel/.xinitrc 2>/dev/null || true
+echo "permissions fixed"

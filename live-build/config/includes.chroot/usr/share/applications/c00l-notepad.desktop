@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=c00l_Notepad
+Comment=Edit text files
+Exec=python3 /opt/c00l-os/apps/notepad.py
+Icon=/opt/c00l-os/assets/icons/notepad.png
+Categories=Utility;TextEditor;
+Terminal=false
