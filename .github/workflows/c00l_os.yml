@@ -1,72 +1,67 @@
 name: Build c00l_OS ISO
 
-# The easiest way to get the real .iso with zero Linux machine of your own:
-# push this project to a GitHub repo, then run this workflow (Actions tab ->
-# "Build c00l_OS ISO" -> "Run workflow"). It builds on GitHub's own Ubuntu
-# runner (which has internet + live-build), and the finished c00l_OS.iso
-# shows up as a downloadable build artifact when it's done (~20-40 min).
-
 on:
-  workflow_dispatch:
   push:
-    branches: [ main ]
-    paths:
-      - "live-build/**"
-      - ".github/workflows/build-iso.yml"
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-c00l-os-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  build-iso:
-    runs-on: ubuntu-latest
+  build:
+    name: Build bootable ISO
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
+
     steps:
-      - name: Check out the project
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Install live-build
+      - name: Install live-build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y live-build live-boot live-config
+          sudo apt-get install -y \
+            live-build \
+            live-boot \
+            live-config \
+            xorriso \
+            debootstrap
 
-      - name: Free up disk space on the runner
+      - name: Check build files
         run: |
-          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android || true
-          sudo docker image prune -a -f || true
-
-      - name: Build the ISO
-        working-directory: live-build
-        run: |
-          sudo lb clean --purge || true
-          sudo lb config \
-            --architecture amd64 \
-            --distribution bookworm \
-            --archive-areas "main contrib non-free non-free-firmware" \
-            --binary-images iso-hybrid \
-            --iso-application "c00l_OS" \
-            --iso-volume "c00l_OS"
-          sudo lb build 2>&1 | tee build.log
-
-      - name: Collect the ISO
-        run: |
-          mkdir -p out
-          iso=$(ls live-build/live-image-*.hybrid.iso 2>/dev/null | head -n1)
-          if [ -z "$iso" ]; then
-            echo "No ISO produced -- see the build log below." >&2
-            tail -n 200 live-build/build.log || true
+          test -f build.sh || {
+            echo "::error::build.sh was not found in the repository root."
             exit 1
-          fi
-          mv "$iso" out/c00l_OS.iso
+          }
+          test -d live-build || {
+            echo "::error::The live-build directory was not found. Add your live-build configuration to the repository."
+            exit 1
+          }
+
+      - name: Build c00l_OS
+        run: sudo bash ./build.sh
+
+      - name: Verify ISO
+        run: |
+          test -s out/c00l_OS.iso || {
+            echo "::error::Build completed without producing out/c00l_OS.iso"
+            exit 1
+          }
+          ls -lh out/c00l_OS.iso
+          sha256sum out/c00l_OS.iso | tee out/c00l_OS.iso.sha256
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
         with:
-          name: c00l_OS-iso
-          path: out/c00l_OS.iso
-          retention-days: 14
-
-      - name: Upload build log (for troubleshooting)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: live-build/build.log
+          name: c00l_OS-bootable-ISO
+          path: |
+            out/c00l_OS.iso
+            out/c00l_OS.iso.sha256
+          if-no-files-found: error
           retention-days: 14
