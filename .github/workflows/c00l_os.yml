@@ -1,0 +1,101 @@
+name: Build c00l_OS ISO
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "live-build/**"
+      - "build.sh"
+      - ".github/workflows/build-iso.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-iso:
+    name: Build bootable Debian live ISO
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Check out c00l_OS
+        uses: actions/checkout@v4
+
+      - name: Install ISO build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            live-build \
+            live-boot \
+            live-config \
+            xorriso \
+            debootstrap \
+            squashfs-tools
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android || true
+          df -h /
+
+      - name: Verify project files
+        run: |
+          test -d live-build/config
+          test -f live-build/config/package-lists/c00l-os.list.chroot
+          test -d live-build/config/includes.chroot/opt/c00l-os/apps
+          echo "Project layout looks correct."
+
+      - name: Configure Debian live image
+        working-directory: live-build
+        run: |
+          sudo lb clean --purge || true
+          sudo lb config \
+            --architecture amd64 \
+            --distribution bookworm \
+            --archive-areas "main contrib non-free non-free-firmware" \
+            --binary-images iso-hybrid \
+            --iso-application "c00l_OS" \
+            --iso-volume "c00l_OS"
+
+      - name: Build ISO
+        working-directory: live-build
+        shell: bash
+        run: |
+          set -o pipefail
+          sudo lb build 2>&1 | tee build.log
+
+      - name: Find and stage ISO
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p out
+          iso="$(find live-build -maxdepth 1 -type f -name '*.hybrid.iso' -print -quit)"
+          if [ -z "$iso" ]; then
+            iso="$(find live-build -maxdepth 1 -type f -name '*.iso' -print -quit)"
+          fi
+          if [ -z "$iso" ]; then
+            echo "The build completed but no ISO file was found."
+            exit 1
+          fi
+          cp "$iso" out/c00l_OS.iso
+          ls -lh out/c00l_OS.iso
+
+      - name: Upload c00l_OS ISO
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c00l_OS-iso
+          path: out/c00l_OS.iso
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c00l_OS-build-log
+          path: live-build/build.log
+          if-no-files-found: ignore
+          retention-days: 14
